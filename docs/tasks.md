@@ -86,6 +86,16 @@
 
 ## 已完成
 
+- [x] Ubuntu 本地编译打包跑通（2026-10-11，Ubuntu 26.04 x64）：`yarn install` → `GITHUB_ACTIONS=false yarn build:prod` →
+  `GITHUB_ACTIONS=false yarn package`，产出 `dist/ghdock_3.6.7~beta3_amd64.deb`（Electron 44.1.1）。
+  环境与步骤见方案文档“本地 Ubuntu 构建”。附带修复：`playwright` 与 `@playwright/test` 版本不一致
+  （1.64.0 / 1.58.2）导致 webpack 编译 `app/test/e2e/e2e-fixtures.ts` 时两份 `playwright-core` 类型冲突，
+  已把 `@playwright/test` 一并对齐到 `^1.64.0`。
+- [x] 修复 deb 安装后普通用户无法运行：Electron 解压产物根目录 `0700` 被 `cpSync` 原样带入，
+  `/opt/ghdock` 装出后是 `drwx------`（2026-10-11 本机安装后点击无反应发现）。
+  `package-linux.ts` staging 后对应用根目录 `chmod 0755`，重新打包；本机因 dpkg 不重设已有目录权限，
+  手动 `sudo chmod 755 /opt/ghdock`。已用 `gtk-launch ghdock` 验证可正常启动。
+
 - [x] 移除对旧版 “GitHub Desktop Pinned” 的兼容：不迁移数据、不作为“从其他应用添加”的来源（旧数据目录应用不再读取，也不修改）。
 - [x] 主窗口与崩溃窗口标题改为产品名（取自 `app/package.json` 的 `productName`），不再显示 “GitHub Desktop”。
 - [x] 管理仓库对话框改版（方案：[仓库批量管理 · 分栏选择列表 / 批量管理](plans/2026-10-10-repository-management.md#分栏选择列表)）：

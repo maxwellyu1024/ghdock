@@ -46,7 +46,30 @@ fork 只保留 `fork-package.yml`。上游工作流（CI、CodeQL、triage、rel
   - `DEBIAN/control`：版本号 `3.6.7-beta3` 转为 `3.6.7~beta3`，声明 Electron 运行依赖。
 - 在 `ubuntu-22.04` 上构建，glibc 兼容 22.04 与 24.04；构建前安装 `libsecret-1-dev`（keytar）。
 
+## 本地 Ubuntu 构建
+
+2026-10-11 在 Ubuntu 26.04 x64 上验证通过的完整步骤（CI 之外的本地路径）：
+
+1. 系统依赖：`sudo apt-get install -y libsecret-1-dev build-essential pkg-config`
+   （`libsecret-1-dev` 供 keytar 编译，`dpkg-deb` 打包工具 Ubuntu 自带）。
+2. Node 与 yarn：nvm 安装的 Node 26.11.1 + 全局 `yarn@1.21.1`（与 `vendor/yarn-1.21.1.js` 同版本）。
+   CI 用 Node 24.19.0，本地 26 亦可用；nodejs.org 在该机器不可达时 nvm 装不了新版本，用已装版本即可。
+3. 仓库根目录 `yarn install`（post-install 会安装 app 依赖、下载 Electron、初始化子模块、编译 `script/`）。
+4. `GITHUB_ACTIONS=false yarn build:prod`：webpack 生产编译 + electron-packager，产物在 `dist/ghdock-linux-x64/`。
+5. `GITHUB_ACTIONS=false yarn package`：产出 `dist/ghdock_<version>_amd64.deb`。
+
+注意：`playwright` 与 `@playwright/test` 必须同版本，否则两份 `playwright-core` 的类型会让
+`app/test/e2e/e2e-fixtures.ts` 在 `compile:prod` 阶段报 TS2345（当前统一为 `^1.64.0`）。
+本地构建产生的 deb 链接的是本机 glibc，如需分发给 22.04/24.04 用户请使用 CI（`ubuntu-22.04`）产物。
+
+打包坑：Electron 解压产物根目录（`dist/<name>-linux-x64/`）权限是 `0700`，`cpSync` 会原样带进
+staging，装出来的 `/opt/<name>` 普通用户无法进入（表现为点击图标无反应 / Permission denied）。
+`package-linux.ts` 在 staging 后对应用根目录 `chmod 0755` 修复。注意 dpkg 重装同一版本时
+不会重设已存在目录的权限，旧机器升级后需手动 `sudo chmod 755 /opt/<name>`（全新安装不受影响）。
+
 ## 验证
 
 - 本地：`tsc`、eslint、`dist-info`/`package-info` 相关单元测试。
 - CI：3 个平台任务全部成功，`development-latest` 包含 4 个安装文件。
+- 本地 Ubuntu 26.04：build:prod + package 产出 deb；`dpkg-deb -I/-c` 校验元数据、SUID `chrome-sandbox`、
+  desktop 文件与图标齐全；`ldd` 无缺失动态库，打包后二进制可启动。
