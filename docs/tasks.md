@@ -18,7 +18,7 @@
 | [改名 GHDock](plans/2026-10-10-rename-ghdock.md) | 已实施 |
 | [独立应用身份](plans/2026-10-10-independent-app-identity.md) | 已实施 |
 | [应用名称文案](plans/2026-10-10-app-name-strings.md) | 已实施 |
-| [GHDock 图标](plans/2026-10-10-ghdock-icon.md) | 已实施 |
+| [GHDock 图标](plans/2026-10-10-ghdock-icon.md) | 已实施（80eeee4c61 改回 GitHub 原配色、去横条、字母拉高） |
 | [Fork CI 与打包](plans/2026-10-10-fork-ci-packaging.md) | 已实施 |
 | [无账号时在 GitHub 上查看](plans/2026-10-10-view-on-github-without-account.md) | 已实施 |
 | [SSH 主机别名解析](plans/2026-10-02-ssh-host-alias-resolution.md) | 已实施 |
@@ -34,6 +34,7 @@
 
 ## 待用户确认
 
+- [?] 新图标（字母纵向拉高 2.5 倍）是否定稿，需在打包后的 Dock 与标题栏中确认。
 - [?] 在 GitHub 上为 `maxwellyu1024/ghdock` 开启 Issues（需用户在仓库设置中操作）。
 
 ## 待办
@@ -73,7 +74,8 @@
   - [x] 入口：提交区身份按钮（操作栏靠右）。
   - [ ] 开发版目测：右键身份子菜单、横幅撤销、管理仓库身份菜单与分组、提交区身份按钮、推荐后果显示。
   - [x] 用本机仓库模拟验证推荐后果与冲突列表（结果见方案文档，冲突仓库与预期一致）。
-- [ ] 用户替换 `/Applications/GHDock.app` 为 `dist/GHDock-darwin-arm64/GHDock.app`（beb46f9d9d 重新打包，含仓库身份、身份一键切换与撤销、推荐后果显示，未签名）。
+- [ ] 重新打包正式版：`dist/` 已被清除，之前 beb46f9d9d 的包不存在了；需打包包含批量别名（9b6037944d）与新图标（80eeee4c61）的版本。
+- [ ] 用户替换 `/Applications/GHDock.app` 为重新打包的 `dist/GHDock-darwin-arm64/GHDock.app`（未签名）。
 - [ ] 第 6 步：GitLab 实现。
 - [ ] 第 7 步：Gitea / Forgejo 实现。
 - [ ] 第 8 步：Bitbucket Cloud 实现。
