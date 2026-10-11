@@ -70,6 +70,9 @@ export function packageLinux() {
   const appDir = path.join(stage, installDir)
   mkdirSync(path.dirname(appDir), { recursive: true })
   cpSync(getDistPath(), appDir, { recursive: true, verbatimSymlinks: true })
+  // Electron 解压出的应用根目录权限为 0700，cpSync 会原样保留，
+  // 安装后普通用户将无法进入 /opt/<name>
+  chmodSync(appDir, 0o755)
 
   // Ubuntu 24.04 限制了非特权用户命名空间，Chromium 需要 SUID 沙箱
   const sandbox = path.join(appDir, 'chrome-sandbox')
