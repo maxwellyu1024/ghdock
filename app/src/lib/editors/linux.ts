@@ -1,3 +1,5 @@
+import * as os from 'os'
+import * as path from 'path'
 import { pathExists } from '../path-exists'
 import { IFoundEditor } from './found-editor'
 
@@ -207,7 +209,10 @@ const editors: ILinuxExternalEditor[] = [
       '/usr/bin/zedit',
       '/usr/bin/zeditor',
       '/usr/bin/zed-editor',
-      '~/.local/bin/zed',
+      // the filesystem API doesn't expand '~', so the per-user install
+      // location has to be joined with the home directory explicitly
+      path.join(os.homedir(), '.local/bin/zed'),
+      '/usr/local/bin/zed',
       '/usr/bin/zed',
     ],
   },
