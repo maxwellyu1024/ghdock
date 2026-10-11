@@ -95,6 +95,10 @@
   `/opt/ghdock` 装出后是 `drwx------`（2026-10-11 本机安装后点击无反应发现）。
   `package-linux.ts` staging 后对应用根目录 `chmod 0755`，重新打包；本机因 dpkg 不重设已有目录权限，
   手动 `sudo chmod 755 /opt/ghdock`。已用 `gtk-launch ghdock` 验证可正常启动。
+- [x] 修复 Linux 上探测不到用户级安装的 Zed：上游 PR #18802 的候选路径写了字面量 `~/.local/bin/zed`，
+  文件系统 API 不展开 `~`，永远匹配不到（2026-10-11 本机 Zed 未出现在“用…打开”发现）。
+  改为 `path.join(os.homedir(), '.local/bin/zed')` 并补 `/usr/local/bin/zed`；
+  tsx 实测探测结果含 `Zed → ~/.local/bin/zed`，已重新打包安装。上游同样存在此缺陷，可提 PR。
 
 - [x] 移除对旧版 “GitHub Desktop Pinned” 的兼容：不迁移数据、不作为“从其他应用添加”的来源（旧数据目录应用不再读取，也不修改）。
 - [x] 主窗口与崩溃窗口标题改为产品名（取自 `app/package.json` 的 `productName`），不再显示 “GitHub Desktop”。
