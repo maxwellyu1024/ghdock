@@ -19,7 +19,9 @@
 - `SSHHostAliasResolver`：
   - `resolve(hosts)`（异步）：对未缓存的主机执行 `ssh -G -- <host>`，读取输出中的 `hostname` 行写入缓存。与 git 连接时使用同一套解析规则（`Include`、`Match`、通配 `Host` 均生效），不自行解析配置文件。
   - `getHostname(host)`（同步）：返回缓存的真实主机名；未缓存时返回原值。
-  - 同一主机的并发解析合并为一次；解析失败、超时（5 秒）或 `ssh` 不可用时缓存原值，不重复尝试。
+  - 同一主机的并发解析合并为一次。解析失败、超时（5 秒）或 `ssh` 不可用时，`getHostname` 返回原值；
+    只记录失败时间，60 秒内不重复启动 `ssh`，之后再次解析，偶发失败（如启动时 `ssh` 超时）不会影响整个会话。
+    失败原因以 warn 级别写入日志。
   - 拒绝以 `-` 开头的主机名，参数通过数组传递，不经过 shell。
 - 导出单例 `sshHostAliasResolver`；SSH 配置是用户级全局配置，单例缓存与其作用域一致。
 
@@ -38,7 +40,7 @@
 
 ### 4. 测试
 
-- `SSHHostAliasResolver`：解析成功、解析失败回退原值、并发去重、拒绝 `-` 开头的主机。
+- `SSHHostAliasResolver`：解析成功、解析失败回退原值、失败 60 秒后重试、并发去重、拒绝 `-` 开头的主机。
 - `parseRemote`：缓存命中后 SSH URL 返回真实主机名；HTTPS URL 不受影响。
 - `matchGitHubRepository`：别名 SSH 远程匹配 github.com 账号。
 

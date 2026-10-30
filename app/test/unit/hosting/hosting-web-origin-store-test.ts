@@ -24,8 +24,9 @@ function createStore(
     },
   }
   const detect = mock.fn(async (_candidates: ReadonlyArray<string>) => detected)
-  const store = new HostingWebOriginStore(detect, storage)
-  return { store, detect, storage }
+  const clock = { now: 0 }
+  const store = new HostingWebOriginStore(detect, storage, () => clock.now)
+  return { store, detect, storage, clock }
 }
 
 describe('HostingWebOriginStore', () => {
@@ -80,15 +81,36 @@ describe('HostingWebOriginStore', () => {
     assert.equal(detect.mock.callCount(), 1)
   })
 
-  it('does not detect failed hosts again in the session', async () => {
-    const { store, detect } = createStore(null)
+  it('detects failed hosts again only after the retry interval', async () => {
+    const { store, detect, clock } = createStore(null)
+    const candidates = ['https://git.example.com']
 
-    await store.resolve('git.example.com', ['https://git.example.com'])
-    await store.resolve('git.example.com', ['https://git.example.com'])
+    await store.resolve('git.example.com', candidates)
+    clock.now = 59 * 1000
+    await store.resolve('git.example.com', candidates)
 
     assert.equal(detect.mock.callCount(), 1)
     assert.equal(store.hasFailed('git.example.com'), true)
     assert.equal(store.get('git.example.com'), undefined)
+
+    clock.now = 60 * 1000
+    assert.equal(store.hasFailed('git.example.com'), false)
+    await store.resolve('git.example.com', candidates)
+
+    assert.equal(detect.mock.callCount(), 2)
+  })
+
+  it('stores hosts detected after failing', async () => {
+    const { store, detect, clock } = createStore(null)
+    const candidates = ['http://192.168.124.11:3000']
+
+    await store.resolve('192.168.124.11', candidates)
+    detect.mock.mockImplementation(async () => forgejo)
+    clock.now = 60 * 1000
+    await store.resolve('192.168.124.11', candidates)
+
+    assert.equal(store.get('192.168.124.11')?.origin, forgejo.origin)
+    assert.equal(store.hasFailed('192.168.124.11'), false)
   })
 
   it('does not detect public hosting services', async () => {

@@ -12,17 +12,36 @@ export type ProbeFetch = (
   init: { readonly signal: AbortSignal }
 ) => Promise<Response>
 
-/** Fetch a URL, returning null on network errors and timeouts */
+/**
+ * Fetch a URL, returning null on network errors and timeouts. Failures are
+ * added to `failures` when given, to report why detection found nothing.
+ */
 async function tryFetch(
   fetch: ProbeFetch,
-  url: string
+  url: string,
+  failures?: Array<string>
 ): Promise<Response | null> {
   try {
     return await fetch(url, { signal: AbortSignal.timeout(ProbeTimeout) })
   } catch (e) {
     log.debug(`Hosting probe of ${url} failed`, e)
+    failures?.push(`${url}: ${e instanceof Error ? e.message : String(e)}`)
     return null
   }
+}
+
+/** Whether an origin serves a page at its root path */
+async function servesPage(
+  fetch: ProbeFetch,
+  origin: string,
+  failures: Array<string>
+): Promise<boolean> {
+  const url = `${origin}/`
+  const response = await tryFetch(fetch, url, failures)
+  if (response !== null && !response.ok) {
+    failures.push(`${url}: HTTP ${response.status}`)
+  }
+  return response !== null && response.ok
 }
 
 async function readJSON(response: Response | null): Promise<unknown> {
@@ -131,14 +150,12 @@ export async function detectHostingWebOrigin(
     .map(parseWebOrigin)
     .filter((origin): origin is string => origin !== null)
 
+  const failures = new Array<string>()
+
   // 平台接口与根路径同时请求，不可达主机最多等待一个超时
   const [platforms, servesPages] = await Promise.all([
     Promise.all(origins.map(origin => probePlatform(fetch, origin))),
-    Promise.all(
-      origins.map(origin =>
-        tryFetch(fetch, `${origin}/`).then(r => r !== null && r.ok)
-      )
-    ),
+    Promise.all(origins.map(origin => servesPage(fetch, origin, failures))),
   ])
 
   const index = platforms.findIndex(p => p !== null)
@@ -147,5 +164,11 @@ export async function detectHostingWebOrigin(
   }
 
   const fallback = servesPages.indexOf(true)
-  return fallback !== -1 ? { origin: origins[fallback], platform: null } : null
+  if (fallback === -1) {
+    // 写入正式版日志，便于排查认不出自建实例的原因（网络、代理、端口）
+    log.warn(`No web origin found: ${failures.join('; ')}`)
+    return null
+  }
+
+  return { origin: origins[fallback], platform: null }
 }

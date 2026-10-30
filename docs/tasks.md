@@ -80,6 +80,10 @@
 - [x] 仓库右键 “View on …” 支持非 GitHub 仓库：已知 SaaS、HTTPS 自建实例、SSH 自建实例自动探测并按主机记住，
   偏好设置 Integrations 可查看、修改、重新探测；文案按平台显示（方案：[在代码平台网页上查看仓库](plans/2026-10-30-repository-web-page.md)）。
   已用内部 Forgejo 实测探测：`git@forgejo:yw/ghdock.git` → `http://192.168.124.11:3000/yw/ghdock`（Forgejo）。
+- [x] 修复正式版内部 Forgejo 仓库（`~/dev/tools`、`~/dev/workspace/rava`）认不出：探测失败与 SSH 别名解析失败
+  原先在整个会话内缓存，一次偶发失败（启动时网络、代理或 `ssh` 未就绪）后要重启才会再试，且只记 debug 日志；
+  改为失败 60 秒后重试，失败原因写入 warn 日志。开发版（经 LaunchServices 启动）实测两仓库均识别为
+  `http://192.168.124.11:3000/yw/tools`、`/yw/rava`（Forgejo）。
 - [ ] 仓库网页开发版目测（只用开发版）：右键内部 Forgejo 仓库显示 “View on Forgejo” 并打开正确页面，应用菜单文案随选中仓库变化，
   偏好设置 Integrations 的 “Repository web pages” 列表、编辑、重新探测、删除。
 - [ ] 用户替换 `/Applications/GHDock.app` 为重新打包的 `dist/GHDock-darwin-arm64/GHDock.app`（未签名）。

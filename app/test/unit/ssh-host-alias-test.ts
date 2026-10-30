@@ -71,6 +71,26 @@ describe('SSHHostAliasResolver', () => {
     assert.equal(resolver.getHostname('work'), 'work')
   })
 
+  it('resolves failed hosts again only after the retry interval', async () => {
+    const reader = mock.fn(async (_host: string): Promise<string | null> => {
+      throw new Error('ssh timed out')
+    })
+    const clock = { now: 0 }
+    const resolver = new SSHHostAliasResolver(reader, () => clock.now)
+
+    await resolver.resolve(['work'])
+    clock.now = 59 * 1000
+    await resolver.resolve(['work'])
+    assert.equal(reader.mock.callCount(), 1)
+
+    reader.mock.mockImplementation(async () => 'github.com')
+    clock.now = 60 * 1000
+    await resolver.resolve(['work'])
+
+    assert.equal(reader.mock.callCount(), 2)
+    assert.equal(resolver.getHostname('work'), 'github.com')
+  })
+
   it('resolves each host only once', async () => {
     const reader = mock.fn(async (_host: string) => 'github.com')
     const resolver = new SSHHostAliasResolver(reader)

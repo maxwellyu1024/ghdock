@@ -28,6 +28,9 @@ export interface IHostingWebOriginStorage {
 
 const StorageKey = 'hosting-web-origins'
 
+/** How long to wait before detecting a failed host again, in milliseconds */
+const RetryInterval = 60 * 1000
+
 export const localHostingWebOriginStorage: IHostingWebOriginStorage = {
   read: () => {
     const raw = localStorage.getItem(StorageKey)
@@ -80,13 +83,14 @@ function parseEntry(value: unknown): IHostingWebOriginEntry | null {
 export class HostingWebOriginStore {
   private readonly emitter = new Emitter()
   private readonly entries = new Map<string, IHostingWebOriginEntry>()
-  /** Hosts whose detection failed in this session, to avoid probing again */
-  private readonly failed = new Set<string>()
+  /** When detection of each host last failed, to avoid probing it repeatedly */
+  private readonly failedAt = new Map<string, number>()
   private readonly pending = new Map<string, Promise<void>>()
 
   public constructor(
     private readonly detect: HostingWebOriginDetector,
-    private readonly storage: IHostingWebOriginStorage = localHostingWebOriginStorage
+    private readonly storage: IHostingWebOriginStorage = localHostingWebOriginStorage,
+    private readonly now: () => number = Date.now
   ) {
     const stored = storage.read()
     for (const value of Array.isArray(stored) ? stored : []) {
@@ -127,7 +131,7 @@ export class HostingWebOriginStore {
   /** Forget the web origin of a host */
   public remove(host: string) {
     const normalized = normalizeHost(host)
-    this.failed.delete(normalized)
+    this.failedAt.delete(normalized)
     if (this.entries.delete(normalized)) {
       this.save()
     }
@@ -135,14 +139,15 @@ export class HostingWebOriginStore {
 
   /**
    * Detect the web origin of a host among the candidate origins unless it is
-   * already known, is a public hosting service, or failed to be detected in
-   * this session. Concurrent requests for a host share one detection.
+   * already known, is a public hosting service, or failed to be detected
+   * within `RetryInterval`. Concurrent requests for a host share one
+   * detection.
    */
   public resolve(host: string, candidates: ReadonlyArray<string>) {
     const normalized = normalizeHost(host)
     if (
       this.entries.has(normalized) ||
-      this.failed.has(normalized) ||
+      this.hasFailed(normalized) ||
       getKnownHostingWebOrigin(normalized) !== null ||
       candidates.length === 0
     ) {
@@ -163,11 +168,18 @@ export class HostingWebOriginStore {
       }
 
       if (detected === null) {
-        this.failed.add(normalized)
+        // 失败只记录时间，过了重试间隔再探测，避免启动时网络或代理未就绪导致整个会话都认不出
+        log.warn(
+          `Could not detect the web origin of '${normalized}' from ${candidates.join(
+            ', '
+          )}`
+        )
+        this.failedAt.set(normalized, this.now())
         this.emitter.emit('did-update')
         return
       }
 
+      this.failedAt.delete(normalized)
       this.entries.set(normalized, {
         host: normalized,
         ...detected,
@@ -194,7 +206,7 @@ export class HostingWebOriginStore {
       return false
     }
 
-    this.failed.delete(normalized)
+    this.failedAt.delete(normalized)
     this.entries.set(normalized, {
       host: normalized,
       ...detected,
@@ -204,9 +216,10 @@ export class HostingWebOriginStore {
     return true
   }
 
-  /** Whether detection of the host failed in this session */
+  /** Whether detection of the host failed within `RetryInterval` */
   public hasFailed(host: string) {
-    return this.failed.has(normalizeHost(host))
+    const failedAt = this.failedAt.get(normalizeHost(host))
+    return failedAt !== undefined && this.now() - failedAt < RetryInterval
   }
 
   public onDidUpdate(fn: () => void): Disposable {

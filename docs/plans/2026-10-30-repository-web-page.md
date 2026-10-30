@@ -57,9 +57,10 @@ SSH 远程推不出网页地址。例如 `git@forgejo:yw/ghdock.git` 的别名 `
 
 - 记录结构：`{ host, origin, platform, source: 'detected' | 'user' }`，以真实主机名为键，
   存在 localStorage `hosting-web-origins` 中，变化时发出更新事件。
-- `resolve(host, candidates)`：主机已有记录、在已知 SaaS 表中、或本次会话已探测失败时直接返回。
+- `resolve(host, candidates)`：主机已有记录、在已知 SaaS 表中、或 60 秒内探测失败过时直接返回。
   否则执行探测，同一主机的并发请求合并为一次。成功则写入 `detected` 记录。
-  失败只记在内存，下次启动再试。
+  失败只在内存中记录时间，60 秒后的下一次右键或选中仓库会重新探测。启动时网络或代理未就绪等偶发失败，
+  不会让整个会话都认不出该主机。
 - 自动探测不会覆盖用户的记录（`user`）。“重新探测”成功时替换原记录，失败时保留原记录。
 
 ### 探测（主进程，`app/src/main-process/detect-hosting-web-origin.ts`）
@@ -75,7 +76,8 @@ SSH 远程推不出网页地址。例如 `git@forgejo:yw/ghdock.git` 的别名 `
   - `/api/v4/version`：带 `X-Gitlab-Meta` 头，或 401 响应体是 `401 Unauthorized`，即为 GitLab；
   - `/api/v3/meta`：返回 JSON `installed_version` 即为 GitHub Enterprise Server。
 - 根路径与平台接口同时请求；所有候选源都认不出平台时，取第一个根路径返回 2xx 的源，平台记为 `null`（显示 “View on Web”）。
-  全部失败时返回 `null`。
+  全部失败时返回 `null`，并把每个候选源根路径的失败原因（网络错误或 HTTP 状态）以 warn 级别写入日志，
+  正式版日志中可直接看到认不出的原因。
 
 ### 触发时机
 
@@ -107,7 +109,7 @@ SSH 远程推不出网页地址。例如 `git@forgejo:yw/ghdock.git` 的别名 `
   - 已关联仓库优先。
 - `hosting-web-origin-store-test.ts`：
   - 持久化读写；
-  - 探测成功写入、失败不重复探测；
+  - 探测成功写入、失败 60 秒内不重复探测、过后重新探测并写入；
   - 并发合并；
   - 用户记录不被覆盖；
   - 重新探测。
