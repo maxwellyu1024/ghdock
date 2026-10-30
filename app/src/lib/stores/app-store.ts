@@ -92,6 +92,7 @@ import {
   RepositoryWithGitHubRepository,
   getNonForkGitHubRepository,
   isForkedRepositoryContributingToParent,
+  getGitHubHtmlUrl,
 } from '../../models/repository'
 import {
   CommittedFileChange,
@@ -339,7 +340,13 @@ import { MenuLabelsEvent } from '../../models/menu-labels'
 import { findRemoteBranchName } from './helpers/find-branch-name'
 import { updateRemoteUrl } from './updates/update-remote-url'
 import { findDefaultRemote } from './helpers/find-default-remote'
-import { getRepositoryWebURL } from '../repository-web-url'
+import {
+  IRepositoryWebPage,
+  getRepositoryWebPage,
+  resolveRemoteWebPage,
+} from '../repository-web-url'
+import { hostingWebOriginStore } from '../hosting/hosting-web-origins'
+import { getHostingPlatformName } from '../hosting/hosting-platform'
 import {
   TutorialStep,
   orderedTutorialSteps,
@@ -1135,6 +1142,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
       this.syncCopilotQuotaSnapshotsFromCache()
       this.emitUpdate()
     })
+
+    // 主机网页地址探测完成或用户修改后，菜单可用状态与“View on …”文案都要刷新
+    hostingWebOriginStore.onDidUpdate(() => {
+      this.updateMenuLabelsForSelectedRepository()
+      this.emitUpdate()
+    })
   }
 
   private getCopilotSettingsAccounts(): ReadonlyArray<Account> {
@@ -1524,6 +1537,8 @@ export class AppStore extends TypedBaseStore<IAppState> {
       lastFetched: gitStore.lastFetched,
     }))
 
+    this.resolveRepositoryWebPage(repository, gitStore.currentRemote)
+
     // _selectWorkingDirectoryFiles and _selectStashedFile will
     // emit updates by themselves.
     if (selectWorkingDirectory) {
@@ -1533,6 +1548,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
     } else {
       this.emitUpdate()
     }
+  }
+
+  /**
+   * Detect the web origin of the remote's host in the background, so the
+   * synchronous menu state and labels can offer its web page.
+   */
+  private resolveRepositoryWebPage(
+    repository: Repository,
+    remote: IRemote | null
+  ) {
+    if (remote === null || getGitHubHtmlUrl(repository) !== null) {
+      return
+    }
+
+    resolveRemoteWebPage(remote.url).catch(e =>
+      log.error(`Could not resolve the web page of ${remote.url}`, e)
+    )
   }
 
   private clearBranchProtectionState(repository: Repository) {
@@ -3001,8 +3033,15 @@ export class AppStore extends TypedBaseStore<IAppState> {
     const askForConfirmationWhenStashingAllChanges =
       changesState.stashEntry !== null
 
+    const webPage =
+      selectedRepository instanceof Repository
+        ? getRepositoryWebPage(selectedRepository, state.remote)
+        : null
+
     updatePreferredAppMenuItemLabels({
       ...labels,
+      repositoryWebPlatformName:
+        webPage !== null ? getHostingPlatformName(webPage.platform) : undefined,
       contributionTargetDefaultBranch,
       isForcePushForCurrentRepository,
       isStashedChangesVisible,
@@ -7854,22 +7893,23 @@ export class AppStore extends TypedBaseStore<IAppState> {
   }
 
   /**
-   * Get the GitHub page of a repository from its associated GitHub repository
-   * or, without a signed in account, from its default remote.
+   * Get the web page of a repository from its associated GitHub repository
+   * or, without a signed in account, from its default remote, detecting the
+   * web origin of the remote's host on first use.
    */
-  public async _getRepositoryWebURL(
+  public async _getRepositoryWebPage(
     repository: Repository
-  ): Promise<string | null> {
-    if (repository.missing) {
-      return getRepositoryWebURL(repository, null)
+  ): Promise<IRepositoryWebPage | null> {
+    if (repository.missing || getGitHubHtmlUrl(repository) !== null) {
+      return getRepositoryWebPage(repository, null)
     }
 
     try {
       const remote = findDefaultRemote(await getRemotes(repository))
-      return getRepositoryWebURL(repository, remote)
+      return remote !== null ? await resolveRemoteWebPage(remote.url) : null
     } catch (e) {
       log.error(`Could not read the remotes of ${repository.path}`, e)
-      return getRepositoryWebURL(repository, null)
+      return null
     }
   }
 

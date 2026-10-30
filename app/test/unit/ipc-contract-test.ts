@@ -92,6 +92,7 @@ describe('IPC channel contract', () => {
     'get-current-window-state',
     'get-current-window-zoom-factor',
     'resolve-proxy',
+    'detect-hosting-web-origin',
     'show-save-dialog',
     'show-open-dialog',
     'read-desktop-repositories',

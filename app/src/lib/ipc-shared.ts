@@ -17,6 +17,7 @@ import { DesktopNotificationPermission } from 'desktop-notifications'
 import { NotificationCallback } from 'desktop-notifications'
 import { DesktopAliveEvent } from './stores/alive-store'
 import { CLIAction } from './cli-action'
+import { IHostingWebOrigin } from './hosting/hosting-platform'
 
 /**
  * Defines the simplex IPC channel names we use from the renderer
@@ -125,6 +126,9 @@ export type RequestResponseChannels = {
   'get-current-window-state': () => Promise<WindowState | undefined>
   'get-current-window-zoom-factor': () => Promise<number | undefined>
   'resolve-proxy': (url: string) => Promise<string>
+  'detect-hosting-web-origin': (
+    candidates: ReadonlyArray<string>
+  ) => Promise<IHostingWebOrigin | null>
   'show-save-dialog': (
     options: Electron.SaveDialogOptions
   ) => Promise<string | null>

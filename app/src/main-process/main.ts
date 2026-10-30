@@ -10,6 +10,7 @@ import {
   session,
   systemPreferences,
   nativeTheme,
+  net,
 } from 'electron'
 import * as Fs from 'fs'
 
@@ -55,6 +56,7 @@ import { initializeDesktopNotifications } from './notifications'
 import parseCommandLineArgs from 'minimist'
 import { CLIAction } from '../lib/cli-action'
 import { readDesktopRepositories } from './read-desktop-repositories'
+import { detectHostingWebOrigin } from './detect-hosting-web-origin'
 
 app.setAppLogsPath()
 enableSourceMaps()
@@ -725,6 +727,15 @@ app.on('ready', () => {
   ipcMain.handle('resolve-proxy', async (_, url: string) => {
     return session.defaultSession.resolveProxy(url)
   })
+
+  /**
+   * Handle action to find the web origin of a code hosting server. Probing
+   * from the main process uses the system proxy and certificate settings and
+   * isn't subject to the renderer's CORS restrictions.
+   */
+  ipcMain.handle('detect-hosting-web-origin', async (_, candidates) =>
+    detectHostingWebOrigin(candidates, (url, init) => net.fetch(url, init))
+  )
 
   /**
    * An event sent by the renderer asking to show the save dialog

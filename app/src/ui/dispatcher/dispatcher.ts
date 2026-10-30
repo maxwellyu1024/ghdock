@@ -42,6 +42,7 @@ import {
   listWorktrees,
 } from '../../lib/git'
 import { isGitOnPath } from '../../lib/is-git-on-path'
+import { IRepositoryWebPage } from '../../lib/repository-web-url'
 import {
   IOpenRepositoryFromURLAction,
   IUnknownAction,
@@ -1725,9 +1726,11 @@ export class Dispatcher {
     return this.appStore._openInBrowser(url)
   }
 
-  /** Get the GitHub page of a repository, if its remote is on GitHub */
-  public getRepositoryWebURL(repository: Repository): Promise<string | null> {
-    return this.appStore._getRepositoryWebURL(repository)
+  /** Get the web page of a repository, if its web origin is known */
+  public getRepositoryWebPage(
+    repository: Repository
+  ): Promise<IRepositoryWebPage | null> {
+    return this.appStore._getRepositoryWebPage(repository)
   }
 
   /** Add the pattern to the repository's gitignore. */

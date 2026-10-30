@@ -12,7 +12,7 @@ import { AppMenu, MenuItem } from '../models/app-menu'
 import { hasConflictedFiles } from './status'
 import { findContributionTargetDefaultBranch } from './branch'
 import { enableCopilotAppHandoff, enableWorktreeSupport } from './feature-flag'
-import { getRepositoryWebURL } from './repository-web-url'
+import { getRepositoryWebPage } from './repository-web-url'
 
 export interface IMenuItemState {
   readonly enabled?: boolean
@@ -232,7 +232,7 @@ function getRepositoryMenuBuilder(state: IAppState): MenuStateBuilder {
     networkActionInProgress = selectedState.state.isPushPullFetchInProgress
     hasRemote = selectedState.state.remote !== null
     hasRepositoryWebURL =
-      getRepositoryWebURL(
+      getRepositoryWebPage(
         selectedState.repository,
         selectedState.state.remote
       ) !== null

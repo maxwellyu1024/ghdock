@@ -1,0 +1,48 @@
+// 偏好设置 · Integrations：自建代码平台的网页地址
+.hosting-web-origins {
+  .hosting-web-origins-description,
+  .hosting-web-origins-message {
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+  }
+
+  .hosting-web-origin-list {
+    margin: 0 0 var(--spacing);
+    padding: 0;
+    list-style: none;
+    border: var(--base-border);
+    border-radius: var(--border-radius);
+  }
+
+  .hosting-web-origin-row {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing);
+    padding: var(--spacing);
+
+    & + .hosting-web-origin-row {
+      border-top: var(--base-border);
+    }
+  }
+
+  .hosting-web-origin-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .hosting-web-origin-host {
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .hosting-web-origin-detail {
+    color: var(--text-secondary-color);
+    font-size: var(--font-size-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .hosting-web-origin-actions {
+    display: flex;
+    gap: var(--spacing-half);
+    flex-shrink: 0;
+  }
+}

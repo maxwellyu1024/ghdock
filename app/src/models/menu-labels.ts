@@ -28,6 +28,14 @@ export type MenuLabelsEvent = {
   readonly askForConfirmationOnRepositoryRemoval: boolean
 
   /**
+   * The name of the platform serving the selected repository's web page, for
+   * the "View on …" menu item, e.g. "GitHub" or "Forgejo".
+   *
+   * Omit this value when the repository has no known web page.
+   */
+  readonly repositoryWebPlatformName?: string
+
+  /**
    * Specify the default branch of the user's contribution target.
    *
    * This value should be the fork's upstream default branch, if the user

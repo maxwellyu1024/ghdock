@@ -48,6 +48,7 @@ export function buildDefaultMenuTemplate({
   selectedShell,
   askForConfirmationOnForcePush,
   askForConfirmationOnRepositoryRemoval,
+  repositoryWebPlatformName = 'GitHub',
   hasCurrentPullRequest = false,
   contributionTargetDefaultBranch = defaultBranchNameValue,
   isForcePushForCurrentRepository = false,
@@ -375,7 +376,9 @@ export function buildDefaultMenuTemplate({
       separator,
       {
         id: 'view-repository-on-github',
-        label: __DARWIN__ ? 'View on GitHub' : '&View on GitHub',
+        label: __DARWIN__
+          ? `View on ${repositoryWebPlatformName}`
+          : `&View on ${repositoryWebPlatformName}`,
         accelerator: 'CmdOrCtrl+Shift+G',
         click: emit('view-repository-on-github'),
       },

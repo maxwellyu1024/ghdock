@@ -395,10 +395,10 @@ export class RepositoriesList extends React.Component<
     event.preventDefault()
 
     const { repository } = item
-    // 远程地址需要读取 git 配置，未登录时也能据此得到 GitHub 页面
-    const gitHubURL =
+    // 远程地址需要读取 git 配置，自建实例首次还要探测网页地址
+    const webPage =
       repository instanceof Repository
-        ? await this.props.dispatcher.getRepositoryWebURL(repository)
+        ? await this.props.dispatcher.getRepositoryWebPage(repository)
         : null
 
     const items = generateRepositoryListContextMenu({
@@ -420,7 +420,7 @@ export class RepositoriesList extends React.Component<
       onTogglePinRepository: this.onTogglePin,
       pinnedRepositories: this.getPinnedRepositories(this.props.repositories),
       onReorderPinnedRepositories: this.onReorderPinnedRepositories,
-      gitHubURL,
+      webPage,
       onViewOnGitHub: this.props.onViewOnGitHub,
       onCreateWorktree: enableWorktreeSupport()
         ? this.onCreateWorktree

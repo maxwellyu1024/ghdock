@@ -6,6 +6,8 @@ import { buildIdentityMenuItems } from '../identities/identity-menu'
 import { Repositoryish, movePinnedRepository } from './group-repositories'
 import { Shell } from '../../lib/shells'
 import { writeClipboardText } from '../main-process-proxy'
+import { IRepositoryWebPage } from '../../lib/repository-web-url'
+import { getHostingPlatformName } from '../../lib/hosting/hosting-platform'
 import {
   RevealInFileManagerLabel,
   DefaultEditorLabel,
@@ -25,8 +27,8 @@ interface IRepositoryListItemContextMenuConfig {
   /** All shells installed on the user's machine */
   availableShells: ReadonlyArray<Shell>
   askForConfirmationOnRemoveRepository: boolean
-  /** The GitHub page of the repository; null if it isn't hosted on GitHub */
-  gitHubURL: string | null
+  /** The web page of the repository; null if its web origin isn't known */
+  webPage: IRepositoryWebPage | null
   onViewOnGitHub: (url: string) => void
   onOpenInShell: (repository: Repositoryish) => void
   onShowRepository: (repository: Repositoryish) => void
@@ -60,7 +62,7 @@ interface IRepositoryListItemContextMenuConfig {
 export const generateRepositoryListContextMenu = (
   config: IRepositoryListItemContextMenuConfig
 ) => {
-  const { repository, gitHubURL } = config
+  const { repository, webPage } = config
   const missing = repository instanceof Repository && repository.missing
   const openInExternalEditor = config.externalEditorLabel
     ? `Open in ${config.externalEditorLabel}`
@@ -84,13 +86,13 @@ export const generateRepositoryListContextMenu = (
     },
     { type: 'separator' },
     {
-      label: 'View on GitHub',
+      label: `View on ${getHostingPlatformName(webPage?.platform ?? null)}`,
       action: () => {
-        if (gitHubURL !== null) {
-          config.onViewOnGitHub(gitHubURL)
+        if (webPage !== null) {
+          config.onViewOnGitHub(webPage.url)
         }
       },
-      enabled: gitHubURL !== null,
+      enabled: webPage !== null,
     },
     {
       label: openInShell,

@@ -16,6 +16,8 @@ import { Button } from '../lib/button'
 import { InputError } from '../lib/input-description/input-error'
 import { showOpenDialog } from '../main-process-proxy'
 import { copilotAppMarketingUrl } from '../../lib/copilot-app'
+import { HostingWebOrigins } from './hosting-web-origins'
+import { hostingWebOriginStore } from '../../lib/hosting/hosting-web-origins'
 
 const CustomIntegrationValue = 'other'
 
@@ -446,6 +448,7 @@ export class Integrations extends React.Component<
           <Row>{this.renderExternalEditor()}</Row>
           <Row>{this.renderSelectedShell()}</Row>
           {this.renderCopilotApp()}
+          <HostingWebOrigins store={hostingWebOriginStore} />
         </DialogContent>
       )
     }
@@ -468,6 +471,7 @@ export class Integrations extends React.Component<
           {this.state.useCustomShell && this.renderCustomShell()}
         </fieldset>
         {this.renderCopilotApp()}
+        <HostingWebOrigins store={hostingWebOriginStore} />
       </DialogContent>
     )
   }

@@ -202,6 +202,12 @@ export async function showFolderContents(
 }
 
 export const openExternal = invokeProxy('open-external', 1)
+
+/** Find the web origin of a code hosting server among candidate origins */
+export const detectHostingWebOrigin = invokeProxy(
+  'detect-hosting-web-origin',
+  1
+)
 export const moveItemToTrash = invokeProxy('move-to-trash', 1)
 
 const writeClipboardTextProxy = invokeProxy('write-clipboard-text', 1)

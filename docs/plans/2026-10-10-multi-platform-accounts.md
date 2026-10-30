@@ -72,6 +72,10 @@ interface IHostingClient {
 }
 ```
 
+- 仓库主页地址与自建实例探测已先行落地，不依赖账号，见
+  [在代码平台网页上查看仓库](2026-10-30-repository-web-page.md)：`lib/hosting/hosting-platform.ts`
+  （平台名、已知 SaaS）、`hosting-web-origin-store.ts`（按主机持久化的网页地址）、主进程
+  `detect-hosting-web-origin.ts`（探测）。第 1 步把它们并入 `IHostingProvider.detect` 与 `webUrls`。
 - `app/src/lib/hosting/<kind>/` 每个平台一个目录；现有 `lib/api.ts`、`endpoint-capabilities.ts`、
   Copilot 相关代码移入 `hosting/github/`，Copilot 为 GitHub 独有能力。
 - 各 store（`pull-request-store`、`commit-status-store`、`issues-store`、`api-repositories-store`…）
@@ -243,7 +247,7 @@ interface IIdentityRule {
 | 克隆 | 两个标签：“Your Accounts”（账号选择器 + 仓库列表）与 “URL”；不再区分 GitHub.com / Enterprise |
 | 发布 | 选择账号 → 选择命名空间（用户、组织、群组）→ 可见性 |
 | PR / MR、CI、分支规则 | 绑定账号的平台具备该能力时显示；术语用平台自己的叫法（Pull Request / Merge Request） |
-| 菜单 | “View on GitHub” 改为 “View on <平台名>”，“Create Pull Request” 按平台显示 MR 等 |
+| 菜单 | “View on <平台名>” 已实施（见仓库网页方案）；“Create Pull Request” 按平台显示 MR 等 |
 | Copilot | 只在 GitHub 账号下可用，其余平台不显示入口 |
 | 偏好设置 · 身份 | 身份列表；编辑作者、签名、SSH 别名（从 `~/.ssh/config` 选择）、绑定账号、匹配规则；显示匹配到的仓库数 |
 | 仓库设置 · Git Config | 选项改为“使用全局配置 / 使用身份（下拉选择）/ 使用本仓库自定义配置”，选择身份后显示将写入的配置 |

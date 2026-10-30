@@ -20,7 +20,8 @@
 | [应用名称文案](plans/2026-10-10-app-name-strings.md) | 已实施 |
 | [GHDock 图标](plans/2026-10-10-ghdock-icon.md) | 已实施（80eeee4c61 改回 GitHub 原配色、去横条、字母拉高） |
 | [Fork CI 与打包](plans/2026-10-10-fork-ci-packaging.md) | 已实施 |
-| [无账号时在 GitHub 上查看](plans/2026-10-10-view-on-github-without-account.md) | 已实施 |
+| [无账号时在 GitHub 上查看](plans/2026-10-10-view-on-github-without-account.md) | 已实施，由下一项扩展到所有平台 |
+| [在代码平台网页上查看仓库（含自建实例）](plans/2026-10-30-repository-web-page.md) | 已实施 |
 | [SSH 主机别名解析](plans/2026-10-02-ssh-host-alias-resolution.md) | 已实施 |
 | [仓库菜单“用…打开”](plans/2026-10-02-repository-menu-open-with.md) | 已实施 |
 | [仓库列表显示当前分支](plans/2026-10-02-repository-list-current-branch.md) | 已实施 |
@@ -74,7 +75,13 @@
   - [x] 入口：提交区身份按钮（操作栏靠右）。
   - [ ] 开发版目测：右键身份子菜单、横幅撤销、管理仓库身份菜单与分组、提交区身份按钮、推荐后果显示。
   - [x] 用本机仓库模拟验证推荐后果与冲突列表（结果见方案文档，冲突仓库与预期一致）。
-- [ ] 重新打包正式版：`dist/` 已被清除，之前 beb46f9d9d 的包不存在了；需打包包含批量别名（9b6037944d）与新图标（80eeee4c61）的版本。
+- [ ] 重新打包正式版：`dist/` 已被清除，之前 beb46f9d9d 的包不存在了；需打包包含上游 3.6.10 合并（773c41d46c）、
+  分支与 worktree 列表 SHA 短码（aec3a2fe08）、仓库网页（含自建实例）的版本。
+- [x] 仓库右键 “View on …” 支持非 GitHub 仓库：已知 SaaS、HTTPS 自建实例、SSH 自建实例自动探测并按主机记住，
+  偏好设置 Integrations 可查看、修改、重新探测；文案按平台显示（方案：[在代码平台网页上查看仓库](plans/2026-10-30-repository-web-page.md)）。
+  已用内部 Forgejo 实测探测：`git@forgejo:yw/ghdock.git` → `http://192.168.124.11:3000/yw/ghdock`（Forgejo）。
+- [ ] 仓库网页开发版目测（只用开发版）：右键内部 Forgejo 仓库显示 “View on Forgejo” 并打开正确页面，应用菜单文案随选中仓库变化，
+  偏好设置 Integrations 的 “Repository web pages” 列表、编辑、重新探测、删除。
 - [ ] 用户替换 `/Applications/GHDock.app` 为重新打包的 `dist/GHDock-darwin-arm64/GHDock.app`（未签名）。
 - [ ] 第 6 步：GitLab 实现。
 - [ ] 第 7 步：Gitea / Forgejo 实现。

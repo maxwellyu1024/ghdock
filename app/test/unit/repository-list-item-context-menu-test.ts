@@ -42,7 +42,7 @@ function createMenu(
     selectedShell: 'Ghostty' as Shell,
     availableShells: ['Terminal', 'iTerm2', 'Ghostty'] as Array<Shell>,
     askForConfirmationOnRemoveRepository: true,
-    gitHubURL: null,
+    webPage: null,
     onViewOnGitHub: noop,
     onOpenInShell: noop,
     onShowRepository: noop,
@@ -137,15 +137,18 @@ describe('generateRepositoryListContextMenu', () => {
     assert.equal(findItem(items, shellSubmenuLabel)?.enabled, false)
   })
 
-  it('disables View on GitHub when the repository has no GitHub page', () => {
-    assert.equal(findItem(createMenu({}), 'View on GitHub')?.enabled, false)
+  it('disables View on Web when the repository has no known web page', () => {
+    assert.equal(findItem(createMenu({}), 'View on Web')?.enabled, false)
   })
 
   it('opens the GitHub page of the repository', () => {
     const onViewOnGitHub = mock.fn((_url: string) => {})
     const item = findItem(
       createMenu({
-        gitHubURL: 'https://github.com/octocat/Hello-World',
+        webPage: {
+          url: 'https://github.com/octocat/Hello-World',
+          platform: 'github',
+        },
         onViewOnGitHub,
       }),
       'View on GitHub'
@@ -156,6 +159,25 @@ describe('generateRepositoryListContextMenu', () => {
     assert.deepEqual(onViewOnGitHub.mock.calls[0].arguments, [
       'https://github.com/octocat/Hello-World',
     ])
+  })
+
+  it('names the platform serving the web page', () => {
+    const menu = createMenu({
+      webPage: {
+        url: 'http://192.168.124.11:3000/yw/ghdock',
+        platform: 'forgejo',
+      },
+    })
+
+    assert.equal(findItem(menu, 'View on Forgejo')?.enabled, true)
+  })
+
+  it('offers web pages of unknown platforms', () => {
+    const menu = createMenu({
+      webPage: { url: 'https://git.example.com/team/app', platform: null },
+    })
+
+    assert.equal(findItem(menu, 'View on Web')?.enabled, true)
   })
 
   describe('moving pinned repositories', () => {

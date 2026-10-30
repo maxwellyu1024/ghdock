@@ -28,7 +28,7 @@ import {
   isWindowsAndNoLongerSupportedByElectron,
 } from '../lib/get-os'
 import { MenuEvent, isTestMenuEvent } from '../main-process/menu'
-import { getRepositoryWebURL } from '../lib/repository-web-url'
+import { getRepositoryWebPage } from '../lib/repository-web-url'
 import {
   Repository,
   getNonForkGitHubRepository,
@@ -1409,10 +1409,10 @@ export class App extends React.Component<IAppProps, IAppState> {
       selectedState.type === SelectionType.Repository
         ? selectedState.state.remote
         : null
-    const url = getRepositoryWebURL(selectedState.repository, remote)
+    const webPage = getRepositoryWebPage(selectedState.repository, remote)
 
-    if (url !== null) {
-      this.viewOnGitHub(url)
+    if (webPage !== null) {
+      this.viewOnGitHub(webPage.url)
     }
   }
 
@@ -3743,9 +3743,9 @@ export class App extends React.Component<IAppProps, IAppState> {
       return
     }
 
-    const gitHubURL =
+    const webPage =
       repository instanceof Repository
-        ? await this.props.dispatcher.getRepositoryWebURL(repository)
+        ? await this.props.dispatcher.getRepositoryWebPage(repository)
         : null
 
     const onChangeRepositoryAlias = (repository: Repository) => {
@@ -3815,7 +3815,7 @@ export class App extends React.Component<IAppProps, IAppState> {
       onTogglePinRepository: onTogglePinRepository,
       pinnedRepositories: getPinnedRepositories(this.state.repositories),
       onReorderPinnedRepositories: onReorderPinnedRepositories,
-      gitHubURL,
+      webPage,
       onViewOnGitHub: this.viewOnGitHub,
       onCreateWorktree: enableWorktreeSupport() ? onCreateWorktree : undefined,
       onShowWorktrees: enableWorktreeSupport() ? onShowWorktrees : undefined,

@@ -2,7 +2,8 @@ import * as React from 'react'
 
 import { encodePathAsUrl } from '../../lib/path'
 import { Repository } from '../../models/repository'
-import { getRepositoryWebURL } from '../../lib/repository-web-url'
+import { getRepositoryWebPage } from '../../lib/repository-web-url'
+import { getHostingPlatformName } from '../../lib/hosting/hosting-platform'
 import { LinkButton } from '../lib/link-button'
 import { MenuIDs } from '../../models/menu-ids'
 import { IMenu, MenuItem } from '../../models/app-menu'
@@ -279,18 +280,20 @@ export class NoChanges extends React.Component<
     this.props.dispatcher.incrementMetric('suggestedStepOpenWorkingDirectory')
 
   private renderViewOnGitHub() {
-    const url = getRepositoryWebURL(
+    const webPage = getRepositoryWebPage(
       this.props.repository,
       this.props.repositoryState.remote
     )
 
-    if (url === null) {
+    if (webPage === null) {
       return null
     }
 
     return this.renderMenuBackedAction(
       'view-repository-on-github',
-      `Open the repository page on GitHub in your browser`,
+      `Open the repository page on ${getHostingPlatformName(
+        webPage.platform
+      )} in your browser`,
       undefined,
       this.onViewOnGitHubClicked
     )
