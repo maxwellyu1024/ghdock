@@ -131,21 +131,21 @@ export async function detectHostingWebOrigin(
     .map(parseWebOrigin)
     .filter((origin): origin is string => origin !== null)
 
-  const platforms = await Promise.all(
-    origins.map(origin => probePlatform(fetch, origin))
-  )
+  // 平台接口与根路径同时请求，不可达主机最多等待一个超时
+  const [platforms, servesPages] = await Promise.all([
+    Promise.all(origins.map(origin => probePlatform(fetch, origin))),
+    Promise.all(
+      origins.map(origin =>
+        tryFetch(fetch, `${origin}/`).then(r => r !== null && r.ok)
+      )
+    ),
+  ])
 
   const index = platforms.findIndex(p => p !== null)
   if (index !== -1) {
     return { origin: origins[index], platform: platforms[index] }
   }
 
-  for (const origin of origins) {
-    const response = await tryFetch(fetch, `${origin}/`)
-    if (response !== null && response.ok) {
-      return { origin, platform: null }
-    }
-  }
-
-  return null
+  const fallback = servesPages.indexOf(true)
+  return fallback !== -1 ? { origin: origins[fallback], platform: null } : null
 }

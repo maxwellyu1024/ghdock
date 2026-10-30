@@ -74,13 +74,13 @@ SSH 远程推不出网页地址。例如 `git@forgejo:yw/ghdock.git` 的别名 `
   - `/api/forgejo/v1/version`：成功即为 Forgejo；
   - `/api/v4/version`：带 `X-Gitlab-Meta` 头，或 401 响应体是 `401 Unauthorized`，即为 GitLab；
   - `/api/v3/meta`：返回 JSON `installed_version` 即为 GitHub Enterprise Server。
-- 所有候选源都认不出平台时，取第一个根路径返回 2xx 的源，平台记为 `null`（显示 “View on Web”）。
+- 根路径与平台接口同时请求；所有候选源都认不出平台时，取第一个根路径返回 2xx 的源，平台记为 `null`（显示 “View on Web”）。
   全部失败时返回 `null`。
 
 ### 触发时机
 
 - 右键菜单：`AppStore._getRepositoryWebPage` 先读远程，再 `await` 主机解析，然后计算网页。
-  第一次右键可能稍慢，最多 3 个候选源 × 3 秒。
+  所有候选源的探测请求并行发出，第一次右键最多等待一个超时（3 秒）。
 - 选中仓库：远程更新时在后台发起解析。地址表更新后重新计算菜单状态与菜单文案，并刷新界面。
 
 ### 界面
