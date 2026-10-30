@@ -13,6 +13,8 @@ import { TooltippedContent } from '../lib/tooltipped-content'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
 import { getPreferAbsoluteDates } from '../../models/formatting-preferences'
 import { formatDate } from '../../lib/format-date'
+import { shortenSHA } from '../../models/commit'
+import { CommitShaCopy } from '../history/commit-sha-copy'
 
 interface IBranchListItemProps {
   /** The name of the branch */
@@ -23,6 +25,9 @@ interface IBranchListItemProps {
 
   /** The characters in the branch name to highlight */
   readonly matches: IMatches
+
+  /** The SHA of the commit at the tip of the branch */
+  readonly sha: string
 
   readonly authorDate: Date | undefined
 
@@ -93,7 +98,7 @@ export class BranchListItem extends React.Component<
   }
 
   public render() {
-    const { authorDate, isCurrentBranch, name } = this.props
+    const { authorDate, isCurrentBranch, name, sha } = this.props
 
     const icon = isCurrentBranch ? octicons.check : octicons.gitBranch
     const className = classNames('branches-list-item', {
@@ -133,6 +138,7 @@ export class BranchListItem extends React.Component<
               tooltip={!enableAccessibleListToolTips()}
             />
           ))}
+        <CommitShaCopy sha={sha} shortSha={shortenSHA(sha)} />
       </div>
     )
   }

@@ -67,4 +67,17 @@ describe('WorktreeListItem', () => {
     assert.equal(marker.closest('.name'), null)
     assert.notEqual(name.closest('.name'), null)
   })
+
+  it('shows the short SHA of the worktree HEAD at the end of the row', () => {
+    renderItem(worktree())
+
+    const button = screen.getByRole('button', {
+      name: 'Copy the full SHA of commit abc1234',
+    })
+    assert.equal(button.textContent, 'abc1234')
+    assert.equal(
+      button.closest('.worktrees-list-item')?.lastElementChild,
+      button
+    )
+  })
 })

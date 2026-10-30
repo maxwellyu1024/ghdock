@@ -11,6 +11,7 @@ import { enableTestTimers, resetTestTimers } from '../../helpers/ui/timers'
 
 const noMatches: IMatches = { title: [], subtitle: [] }
 const now = Date.parse('2026-03-26T12:00:00.000Z')
+const sha = 'def5678def5678def5678def5678def5678def567'
 
 describe('BranchListItem', () => {
   beforeEach(() => {
@@ -29,6 +30,7 @@ describe('BranchListItem', () => {
         name="main"
         isCurrentBranch={true}
         matches={noMatches}
+        sha={sha}
         authorDate={new Date(now - 30 * 1000)}
       />
     )
@@ -55,6 +57,7 @@ describe('BranchListItem', () => {
         name="release"
         isCurrentBranch={false}
         matches={noMatches}
+        sha={sha}
         authorDate={undefined}
         onDropOntoBranch={onDropOntoBranch}
       />
@@ -94,6 +97,7 @@ describe('BranchListItem', () => {
         name="main"
         isCurrentBranch={true}
         matches={noMatches}
+        sha={sha}
         authorDate={undefined}
         onDropOntoCurrentBranch={onDropOntoCurrentBranch}
       />
@@ -111,5 +115,25 @@ describe('BranchListItem', () => {
     fireEvent.mouseUp(item)
 
     assert.equal(droppedOnCurrentBranch, 1)
+  })
+
+  it('shows the short SHA of the branch tip at the end of the row', () => {
+    const view = render(
+      <BranchListItem
+        name="main"
+        isCurrentBranch={false}
+        matches={noMatches}
+        sha={sha}
+        authorDate={new Date(now - 30 * 1000)}
+      />
+    )
+
+    const button = screen.getByRole('button', {
+      name: 'Copy the full SHA of commit def5678',
+    })
+    assert.equal(button.textContent, 'def5678')
+
+    const item = view.container.querySelector('.branches-list-item')
+    assert.equal(item?.lastElementChild, button)
   })
 })

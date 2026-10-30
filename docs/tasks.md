@@ -25,7 +25,7 @@
 | [仓库菜单“用…打开”](plans/2026-10-02-repository-menu-open-with.md) | 已实施 |
 | [仓库列表显示当前分支](plans/2026-10-02-repository-list-current-branch.md) | 已实施 |
 | [置顶仓库排序](plans/2026-10-02-pinned-repositories-order.md) | 已实施 |
-| [提交列表复制 SHA](plans/2026-10-02-commit-list-sha-copy.md) | 已实施 |
+| [提交、分支与 worktree 列表复制 SHA](plans/2026-10-02-commit-list-sha-copy.md) | 已实施（分支与 worktree 列表见本次提交） |
 | [置顶仓库设计](plans/2026-07-08-pinned-repositories-design.md) / [计划](plans/2026-07-08-pinned-repositories-plan.md) | 已实施 |
 
 ## 进行中

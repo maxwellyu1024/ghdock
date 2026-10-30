@@ -1,0 +1,33 @@
+// 提交哈希短码复制按钮（CommitShaCopy），用于历史、分支与 worktree 列表。
+// 外观与提交详情头部的提交引用（.ecs-meta-item.commit-ref）一致：
+// 提交图标 + 短码 + 复制图标，界面字体、小号字、行文字颜色
+// （选中行反色背景下同样清晰）
+.commit-sha {
+  // 复位浏览器默认按钮样式
+  border: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: var(--font-size-sm);
+  color: inherit;
+  cursor: pointer;
+
+  .commit-sha-text {
+    padding-left: var(--spacing-half);
+  }
+
+  // 与 CopyButton（.button-component.copy-button .octicon）尺寸一致
+  .commit-sha-copy-icon {
+    height: 12px;
+    width: 12px;
+    margin-left: var(--spacing-half);
+  }
+
+  &:hover .commit-sha-copy-icon {
+    color: var(--text-secondary-color);
+  }
+}

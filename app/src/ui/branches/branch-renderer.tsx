@@ -22,6 +22,7 @@ export function renderDefaultBranch(
     <BranchListItem
       name={branch.name}
       isCurrentBranch={branch.name === currentBranchName}
+      sha={branch.tip.sha}
       authorDate={authorDate}
       matches={matches}
       onDropOntoBranch={onDropOntoBranch}

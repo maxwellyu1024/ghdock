@@ -11,6 +11,8 @@ import { HighlightText } from '../lib/highlight-text'
 import classNames from 'classnames'
 import { TooltippedContent } from '../lib/tooltipped-content'
 import { enableAccessibleListToolTips } from '../../lib/feature-flag'
+import { shortenSHA } from '../../models/commit'
+import { CommitShaCopy } from '../history/commit-sha-copy'
 
 interface IWorktreeListItemProps {
   readonly worktree: WorktreeEntry
@@ -56,6 +58,10 @@ export class WorktreeListItem extends React.Component<IWorktreeListItemProps> {
         >
           {description}
         </TooltippedContent>
+        <CommitShaCopy
+          sha={worktree.head}
+          shortSha={shortenSHA(worktree.head)}
+        />
       </div>
     )
   }
