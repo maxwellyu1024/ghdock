@@ -28,7 +28,6 @@ import {
 import { HttpStatusCode } from './http-status-code'
 import { CopilotError, parseCopilotPaymentRequiredError } from './copilot-error'
 import { BypassReasonType } from '../ui/secret-scanning/bypass-push-protection-dialog'
-import { enableShortLivedTokens } from './feature-flag'
 
 const envEndpoint = process.env['DESKTOP_GITHUB_DOTCOM_API_ENDPOINT']
 const envHTMLURL = process.env['DESKTOP_GITHUB_DOTCOM_HTML_URL']
@@ -2328,7 +2327,8 @@ export function getEndpointForRepository(url: string): string {
  * Get the URL for the HTML site. For example:
  *
  * https://api.github.com -> https://github.com
- * http://github.mycompany.com/api -> http://github.mycompany.com/
+ * http://github.mycompany.com/api -> http://github.mycompany.com
+ * https://github.mycompany.com:8443/api/v3 -> https://github.mycompany.com:8443
  */
 export function getHTMLURL(endpoint: string): string {
   if (envHTMLURL !== undefined) {
@@ -2347,7 +2347,7 @@ export function getHTMLURL(endpoint: string): string {
     return 'https://github.com'
   } else {
     if (isGHE(endpoint)) {
-      const url = new window.URL(endpoint)
+      const url = new URL.URL(endpoint)
 
       url.pathname = '/'
 
@@ -2358,8 +2358,9 @@ export function getHTMLURL(endpoint: string): string {
       return url.toString()
     }
 
-    const parsed = URL.parse(endpoint)
-    return `${parsed.protocol}//${parsed.hostname}`
+    // Use the origin rather than the hostname so that GitHub Enterprise
+    // Server instances running on a non-default port retain their port.
+    return new URL.URL(endpoint).origin
   }
 }
 
@@ -2402,7 +2403,7 @@ export function getAccountForEndpoint(
 export function getOAuthAuthorizationURL(
   endpoint: string,
   state: string,
-  shortLived = enableShortLivedTokens()
+  shortLived: boolean
 ): string {
   const urlBase = getHTMLURL(endpoint)
   const scope = encodeURIComponent(

@@ -202,6 +202,7 @@ import { ConfirmCommitFilteredChanges } from './changes/confirm-commit-filtered-
 import { AboutTestDialog } from './about/about-test-dialog'
 import { TestCLIActionDialog } from './cli-action/test-cli-action-dialog'
 import { TestCopilotSnapshotCardDialog } from './preferences/test-copilot-snapshot-card-dialog'
+import { TestTokenExpirationDialog } from './preferences/test-token-expiration-dialog'
 import {
   enableCopilotSdkCommitMessageGeneration,
   enableCopilotAppHandoff,
@@ -230,7 +231,7 @@ import { AddWorktreeDialog } from './worktrees/add-worktree-dialog'
 import { RenameWorktreeDialog } from './worktrees/rename-worktree-dialog'
 import { DeleteWorktreeDialog } from './worktrees/delete-worktree-dialog'
 import { DeleteWorktreeFailedDialog } from './worktrees/delete-worktree-failed-dialog'
-import { WorktreeEntry } from '../models/worktree'
+import { IDeleteWorktreeOptions, WorktreeEntry } from '../models/worktree'
 import { shouldShowWorktreeDropdown } from '../lib/worktree-dropdown'
 import { AddRepositoriesDialog } from './repository-management/add-repositories-dialog'
 import { AddRepositoriesFromAppsDialog } from './repository-management/add-repositories-from-apps-dialog'
@@ -2904,6 +2905,15 @@ export class App extends React.Component<IAppProps, IAppState> {
             onDismissed={onPopupDismissedFn}
           />
         )
+      case PopupType.TestTokenExpiration:
+        return (
+          <TestTokenExpirationDialog
+            key="test-token-expiration"
+            accounts={this.state.accounts}
+            dispatcher={this.props.dispatcher}
+            onDismissed={onPopupDismissedFn}
+          />
+        )
       case PopupType.PushProtectionError:
         return (
           <PushProtectionErrorDialog
@@ -3065,6 +3075,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             key="delete-worktree"
             repository={popup.repository}
             worktreePath={popup.worktreePath}
+            options={popup.options}
             askForConfirmationOnWorktreeRemoval={
               this.state.askForConfirmationOnWorktreeRemoval
             }
@@ -3084,6 +3095,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             worktreePath={popup.worktreePath}
             error={popup.error}
             originalWorktree={popup.originalWorktree}
+            options={popup.options}
             onDeleteWorktree={this.onDeleteWorkTree}
             onSwitchToWorktree={this.onSwitchToWorktree}
             onDismissed={onPopupDismissedFn}
@@ -3201,9 +3213,13 @@ export class App extends React.Component<IAppProps, IAppState> {
   private onDeleteWorkTree = (
     repository: Repository,
     worktreePath: string,
-    force?: boolean
+    options?: IDeleteWorktreeOptions
   ) => {
-    return this.props.dispatcher.deleteWorktree(repository, worktreePath, force)
+    return this.props.dispatcher.deleteWorktree(
+      repository,
+      worktreePath,
+      options
+    )
   }
 
   private onConfirmWorktreeRemovalChanged = (value: boolean) => {
